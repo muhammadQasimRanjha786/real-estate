@@ -1,3 +1,729 @@
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+
+// type City = {
+//   id: number;
+//   name: string;
+// };
+
+// type Area = {
+//   id: number;
+//   name: string;
+// };
+
+// type Amenity = {
+//   id: number;
+//   name: string;
+// };
+
+// export default function AddPropertyPage() {
+//   const router = useRouter();
+
+//   const [cities, setCities] = useState<City[]>([]);
+//   const [areas, setAreas] = useState<Area[]>([]);
+//   const [amenities, setAmenities] = useState<Amenity[]>([]);
+
+//   const [loading, setLoading] = useState(true);
+//   const [saving, setSaving] = useState(false);
+//   const [error, setError] = useState("");
+
+//   const [form, setForm] = useState({
+//     title: "",
+//     description: "",
+//     purpose: "SALE",
+//     type: "HOUSE",
+//     price: "",
+//     areaSize: "",
+//     areaUnit: "MARLA",
+//     bedrooms: "",
+//     bathrooms: "",
+//     floor: "",
+//     cityId: "",
+//     areaId: "",
+//     featured: false,
+//     published: true,
+//   });
+
+//   const [selectedAmenities, setSelectedAmenities] = useState<number[]>(
+//     []
+//   );
+
+//   // ─────────────────────────────────────
+//   // LOAD CITIES + AMENITIES
+//   // ─────────────────────────────────────
+
+//   useEffect(() => {
+//     async function loadData() {
+//       try {
+//         const response = await fetch("/api/properties");
+
+//         if (!response.ok) {
+//           throw new Error("Failed to load data");
+//         }
+
+//         const data = await response.json();
+
+//         setCities(data.cities);
+//         setAmenities(data.amenities);
+//       } catch {
+//         setError("Unable to load property data.");
+//       } finally {
+//         setLoading(false);
+//       }
+//     }
+
+//     loadData();
+//   }, []);
+
+//   // ─────────────────────────────────────
+//   // LOAD AREAS WHEN CITY CHANGES
+//   // ─────────────────────────────────────
+
+//   useEffect(() => {
+//     if (!form.cityId) {
+//       setAreas([]);
+//       return;
+//     }
+
+//     async function loadAreas() {
+//       try {
+//         const response = await fetch(
+//           `/api/properties?cityId=${form.cityId}`
+//         );
+
+//         const data = await response.json();
+
+//         setAreas(data.areas || []);
+//       } catch {
+//         setAreas([]);
+//       }
+//     }
+
+//     loadAreas();
+//   }, [form.cityId]);
+
+//   // ─────────────────────────────────────
+//   // INPUT HANDLER
+//   // ─────────────────────────────────────
+
+//   function updateField(
+//     field: string,
+//     value: string | boolean
+//   ) {
+//     setForm((previous) => ({
+//       ...previous,
+//       [field]: value,
+//     }));
+//   }
+
+//   // ─────────────────────────────────────
+//   // AMENITY HANDLER
+//   // ─────────────────────────────────────
+
+//   function toggleAmenity(id: number) {
+//     setSelectedAmenities((previous) => {
+//       if (previous.includes(id)) {
+//         return previous.filter((item) => item !== id);
+//       }
+
+//       return [...previous, id];
+//     });
+//   }
+
+//   // ─────────────────────────────────────
+//   // SUBMIT
+//   // ─────────────────────────────────────
+
+//   async function handleSubmit(
+//     e: React.FormEvent<HTMLFormElement>
+//   ) {
+//     e.preventDefault();
+
+//     setSaving(true);
+//     setError("");
+
+//     try {
+//       const response = await fetch("/api/properties", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           ...form,
+//           cityId: Number(form.cityId),
+//           areaId: form.areaId
+//             ? Number(form.areaId)
+//             : null,
+//           price: Number(form.price),
+//           areaSize: form.areaSize
+//             ? Number(form.areaSize)
+//             : null,
+//           bedrooms: form.bedrooms
+//             ? Number(form.bedrooms)
+//             : null,
+//           bathrooms: form.bathrooms
+//             ? Number(form.bathrooms)
+//             : null,
+//           floor: form.floor
+//             ? Number(form.floor)
+//             : null,
+//           amenityIds: selectedAmenities,
+//         }),
+//       });
+
+//       const data = await response.json();
+
+//       if (!response.ok) {
+//         setError(data.error || "Failed to create property.");
+//         return;
+//       }
+
+//       router.push("/admin/properties");
+//       router.refresh();
+//     } catch {
+//       setError("Something went wrong.");
+//     } finally {
+//       setSaving(false);
+//     }
+//   }
+
+//   if (loading) {
+//     return (
+//       <main className="min-h-screen bg-gray-100 flex items-center justify-center">
+//         <p className="text-gray-600">
+//           Loading...
+//         </p>
+//       </main>
+//     );
+//   }
+
+//   return (
+//     <main className="min-h-screen bg-gray-100">
+//       {/* HEADER */}
+
+//       <header className="bg-white border-b">
+//         <div className="max-w-5xl mx-auto px-6 py-5">
+//           <button
+//             type="button"
+//             onClick={() => router.push("/admin")}
+//             className="text-sm text-gray-500 hover:text-black"
+//           >
+//             ← Back to Dashboard
+//           </button>
+
+//           <h1 className="text-3xl font-bold mt-3">
+//             Add Property
+//           </h1>
+
+//           <p className="text-gray-500 mt-1">
+//             Create a new property listing
+//           </p>
+//         </div>
+//       </header>
+
+//       {/* FORM */}
+
+//       <section className="max-w-5xl mx-auto p-6">
+//         <form
+//           onSubmit={handleSubmit}
+//           className="space-y-6"
+//         >
+//           {/* BASIC INFORMATION */}
+
+//           <div className="bg-white rounded-2xl p-6 shadow-sm">
+//             <h2 className="text-xl font-semibold">
+//               Basic Information
+//             </h2>
+
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+//               {/* PURPOSE */}
+
+//               <div>
+//                 <label className="label">
+//                   Purpose
+//                 </label>
+
+//                 <select
+//                   value={form.purpose}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "purpose",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                 >
+//                   <option value="SALE">
+//                     For Sale
+//                   </option>
+
+//                   <option value="RENT">
+//                     For Rent
+//                   </option>
+//                 </select>
+//               </div>
+
+//               {/* TYPE */}
+
+//               <div>
+//                 <label className="label">
+//                   Property Type
+//                 </label>
+
+//                 <select
+//                   value={form.type}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "type",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                 >
+//                   <option value="HOUSE">
+//                     House
+//                   </option>
+
+//                   <option value="FLAT">
+//                     Flat
+//                   </option>
+
+//                   <option value="PLOT">
+//                     Plot
+//                   </option>
+
+//                   <option value="COMMERCIAL">
+//                     Commercial
+//                   </option>
+//                 </select>
+//               </div>
+
+//               {/* TITLE */}
+
+//               <div className="md:col-span-2">
+//                 <label className="label">
+//                   Property Title
+//                 </label>
+
+//                 <input
+//                   type="text"
+//                   value={form.title}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "title",
+//                       e.target.value
+//                     )
+//                   }
+//                   placeholder="Modern 5 Marla House in Bahria Town"
+//                   className="input"
+//                   required
+//                 />
+//               </div>
+
+//               {/* PRICE */}
+
+//               <div>
+//                 <label className="label">
+//                   Price (PKR)
+//                 </label>
+
+//                 <input
+//                   type="number"
+//                   value={form.price}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "price",
+//                       e.target.value
+//                     )
+//                   }
+//                   placeholder="25000000"
+//                   className="input"
+//                   required
+//                   min="0"
+//                 />
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* LOCATION */}
+
+//           <div className="bg-white rounded-2xl p-6 shadow-sm">
+//             <h2 className="text-xl font-semibold">
+//               Location
+//             </h2>
+
+//             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+//               {/* CITY */}
+
+//               <div>
+//                 <label className="label">
+//                   City
+//                 </label>
+
+//                 <select
+//                   value={form.cityId}
+//                   onChange={(e) => {
+//                     updateField(
+//                       "cityId",
+//                       e.target.value
+//                     );
+
+//                     updateField(
+//                       "areaId",
+//                       ""
+//                     );
+//                   }}
+//                   className="input"
+//                   required
+//                 >
+//                   <option value="">
+//                     Select City
+//                   </option>
+
+//                   {cities.map((city) => (
+//                     <option
+//                       key={city.id}
+//                       value={city.id}
+//                     >
+//                       {city.name}
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+
+//               {/* AREA */}
+
+//               <div>
+//                 <label className="label">
+//                   Area
+//                 </label>
+
+//                 <select
+//                   value={form.areaId}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "areaId",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                   disabled={!form.cityId}
+//                 >
+//                   <option value="">
+//                     Select Area
+//                   </option>
+
+//                   {areas.map((area) => (
+//                     <option
+//                       key={area.id}
+//                       value={area.id}
+//                     >
+//                       {area.name}
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* PROPERTY DETAILS */}
+
+//           <div className="bg-white rounded-2xl p-6 shadow-sm">
+//             <h2 className="text-xl font-semibold">
+//               Property Details
+//             </h2>
+
+//             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+//               {/* SIZE */}
+
+//               <div>
+//                 <label className="label">
+//                   Size
+//                 </label>
+
+//                 <input
+//                   type="number"
+//                   value={form.areaSize}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "areaSize",
+//                       e.target.value
+//                     )
+//                   }
+//                   placeholder="5"
+//                   className="input"
+//                   min="0"
+//                 />
+//               </div>
+
+//               {/* UNIT */}
+
+//               <div>
+//                 <label className="label">
+//                   Unit
+//                 </label>
+
+//                 <select
+//                   value={form.areaUnit}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "areaUnit",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                 >
+//                   <option value="MARLA">
+//                     Marla
+//                   </option>
+
+//                   <option value="KANAL">
+//                     Kanal
+//                   </option>
+
+//                   <option value="SQ_FT">
+//                     Sq. Ft.
+//                   </option>
+
+//                   <option value="SQ_YD">
+//                     Sq. Yd.
+//                   </option>
+
+//                   <option value="SQ_M">
+//                     Sq. M
+//                   </option>
+//                 </select>
+//               </div>
+
+//               {/* BEDROOMS */}
+
+//               <div>
+//                 <label className="label">
+//                   Bedrooms
+//                 </label>
+
+//                 <input
+//                   type="number"
+//                   value={form.bedrooms}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "bedrooms",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                   min="0"
+//                 />
+//               </div>
+
+//               {/* BATHROOMS */}
+
+//               <div>
+//                 <label className="label">
+//                   Bathrooms
+//                 </label>
+
+//                 <input
+//                   type="number"
+//                   value={form.bathrooms}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "bathrooms",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                   min="0"
+//                 />
+//               </div>
+
+//               {/* FLOOR */}
+
+//               <div>
+//                 <label className="label">
+//                   Floor
+//                 </label>
+
+//                 <input
+//                   type="number"
+//                   value={form.floor}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "floor",
+//                       e.target.value
+//                     )
+//                   }
+//                   className="input"
+//                 />
+//               </div>
+//             </div>
+//           </div>
+
+//           {/* DESCRIPTION */}
+
+//           <div className="bg-white rounded-2xl p-6 shadow-sm">
+//             <h2 className="text-xl font-semibold">
+//               Description
+//             </h2>
+
+//             <textarea
+//               value={form.description}
+//               onChange={(e) =>
+//                 updateField(
+//                   "description",
+//                   e.target.value
+//                 )
+//               }
+//               placeholder="Describe the property..."
+//               className="input mt-5 min-h-40 resize-y"
+//               required
+//             />
+//           </div>
+
+//           {/* AMENITIES */}
+
+//           <div className="bg-white rounded-2xl p-6 shadow-sm">
+//             <h2 className="text-xl font-semibold">
+//               Amenities
+//             </h2>
+
+//             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-5">
+//               {amenities.map((amenity) => (
+//                 <label
+//                   key={amenity.id}
+//                   className="flex items-center gap-3 border rounded-xl p-3 cursor-pointer hover:bg-gray-50"
+//                 >
+//                   <input
+//                     type="checkbox"
+//                     checked={selectedAmenities.includes(
+//                       amenity.id
+//                     )}
+//                     onChange={() =>
+//                       toggleAmenity(
+//                         amenity.id
+//                       )
+//                     }
+//                     className="w-4 h-4"
+//                   />
+
+//                   <span className="text-sm">
+//                     {amenity.name}
+//                   </span>
+//                 </label>
+//               ))}
+//             </div>
+//           </div>
+
+//           {/* WEBSITE SETTINGS */}
+
+//           <div className="bg-white rounded-2xl p-6 shadow-sm">
+//             <h2 className="text-xl font-semibold">
+//               Website Settings
+//             </h2>
+
+//             <div className="flex flex-col gap-4 mt-5">
+//               <label className="flex items-center gap-3">
+//                 <input
+//                   type="checkbox"
+//                   checked={form.featured}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "featured",
+//                       e.target.checked
+//                     )
+//                   }
+//                   className="w-4 h-4"
+//                 />
+
+//                 <span>
+//                   Featured Property
+//                 </span>
+//               </label>
+
+//               <label className="flex items-center gap-3">
+//                 <input
+//                   type="checkbox"
+//                   checked={form.published}
+//                   onChange={(e) =>
+//                     updateField(
+//                       "published",
+//                       e.target.checked
+//                     )
+//                   }
+//                   className="w-4 h-4"
+//                 />
+
+//                 <span>
+//                   Publish on Website
+//                 </span>
+//               </label>
+//             </div>
+//           </div>
+
+//           {/* ERROR */}
+
+//           {error && (
+//             <div className="bg-red-50 text-red-600 rounded-xl p-4">
+//               {error}
+//             </div>
+//           )}
+
+//           {/* SAVE */}
+
+//           <div className="flex justify-end gap-3 pb-10">
+//             <button
+//               type="button"
+//               onClick={() =>
+//                 router.push("/admin")
+//               }
+//               className="border bg-white px-6 py-3 rounded-xl"
+//             >
+//               Cancel
+//             </button>
+
+//             <button
+//               type="submit"
+//               disabled={saving}
+//               className="bg-black text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50"
+//             >
+//               {saving
+//                 ? "Saving..."
+//                 : "Publish Property"}
+//             </button>
+//           </div>
+//         </form>
+//       </section>
+
+//       {/* SIMPLE TAILWIND CLASSES */}
+
+//       <style jsx global>{`
+//         .label {
+//           display: block;
+//           font-size: 0.875rem;
+//           font-weight: 500;
+//           margin-bottom: 0.5rem;
+//         }
+
+//         .input {
+//           width: 100%;
+//           border: 1px solid #d1d5db;
+//           border-radius: 0.75rem;
+//           padding: 0.75rem 1rem;
+//           outline: none;
+//           background: white;
+//         }
+
+//         .input:focus {
+//           border-color: #000;
+//           box-shadow: 0 0 0 1px #000;
+//         }
+//       `}</style>
+//     </main>
+//   );
+// }
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -27,7 +753,13 @@ export default function AddPropertyPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImages, setUploadingImages] =
+    useState(false);
   const [error, setError] = useState("");
+
+  // ─────────────────────────────────────
+  // FORM
+  // ─────────────────────────────────────
 
   const [form, setForm] = useState({
     title: "",
@@ -46,9 +778,18 @@ export default function AddPropertyPage() {
     published: true,
   });
 
-  const [selectedAmenities, setSelectedAmenities] = useState<number[]>(
-    []
-  );
+  // ─────────────────────────────────────
+  // AMENITIES
+  // ─────────────────────────────────────
+
+  const [selectedAmenities, setSelectedAmenities] =
+    useState<number[]>([]);
+
+  // ─────────────────────────────────────
+  // IMAGES
+  // ─────────────────────────────────────
+
+  const [images, setImages] = useState<string[]>([]);
 
   // ─────────────────────────────────────
   // LOAD CITIES + AMENITIES
@@ -57,18 +798,24 @@ export default function AddPropertyPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const response = await fetch("/api/properties");
+        const response = await fetch(
+          "/api/properties"
+        );
 
         if (!response.ok) {
-          throw new Error("Failed to load data");
+          throw new Error(
+            "Failed to load data"
+          );
         }
 
         const data = await response.json();
 
-        setCities(data.cities);
-        setAmenities(data.amenities);
+        setCities(data.cities || []);
+        setAmenities(data.amenities || []);
       } catch {
-        setError("Unable to load property data.");
+        setError(
+          "Unable to load property data."
+        );
       } finally {
         setLoading(false);
       }
@@ -78,7 +825,7 @@ export default function AddPropertyPage() {
   }, []);
 
   // ─────────────────────────────────────
-  // LOAD AREAS WHEN CITY CHANGES
+  // LOAD AREAS
   // ─────────────────────────────────────
 
   useEffect(() => {
@@ -92,6 +839,12 @@ export default function AddPropertyPage() {
         const response = await fetch(
           `/api/properties?cityId=${form.cityId}`
         );
+
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load areas"
+          );
+        }
 
         const data = await response.json();
 
@@ -125,11 +878,83 @@ export default function AddPropertyPage() {
   function toggleAmenity(id: number) {
     setSelectedAmenities((previous) => {
       if (previous.includes(id)) {
-        return previous.filter((item) => item !== id);
+        return previous.filter(
+          (item) => item !== id
+        );
       }
 
       return [...previous, id];
     });
+  }
+
+  // ─────────────────────────────────────
+  // IMAGE UPLOAD
+  // ─────────────────────────────────────
+
+  async function uploadImages(
+    files: FileList | null
+  ) {
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    setUploadingImages(true);
+    setError("");
+
+    try {
+      const uploadedUrls: string[] = [];
+
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+
+        formData.append("file", file);
+
+        const response = await fetch(
+          "/api/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data.error ||
+              "Image upload failed."
+          );
+        }
+
+        uploadedUrls.push(data.url);
+      }
+
+      setImages((previous) => [
+        ...previous,
+        ...uploadedUrls,
+      ]);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Image upload failed."
+      );
+    } finally {
+      setUploadingImages(false);
+    }
+  }
+
+  // ─────────────────────────────────────
+  // REMOVE IMAGE
+  // ─────────────────────────────────────
+
+  function removeImage(index: number) {
+    setImages((previous) =>
+      previous.filter(
+        (_, imageIndex) =>
+          imageIndex !== index
+      )
+    );
   }
 
   // ─────────────────────────────────────
@@ -145,49 +970,77 @@ export default function AddPropertyPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/properties", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...form,
-          cityId: Number(form.cityId),
-          areaId: form.areaId
-            ? Number(form.areaId)
-            : null,
-          price: Number(form.price),
-          areaSize: form.areaSize
-            ? Number(form.areaSize)
-            : null,
-          bedrooms: form.bedrooms
-            ? Number(form.bedrooms)
-            : null,
-          bathrooms: form.bathrooms
-            ? Number(form.bathrooms)
-            : null,
-          floor: form.floor
-            ? Number(form.floor)
-            : null,
-          amenityIds: selectedAmenities,
-        }),
-      });
+      const response = await fetch(
+        "/api/properties",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            ...form,
+
+            cityId: Number(form.cityId),
+
+            areaId: form.areaId
+              ? Number(form.areaId)
+              : null,
+
+            price: Number(form.price),
+
+            areaSize: form.areaSize
+              ? Number(form.areaSize)
+              : null,
+
+            bedrooms: form.bedrooms
+              ? Number(form.bedrooms)
+              : null,
+
+            bathrooms: form.bathrooms
+              ? Number(form.bathrooms)
+              : null,
+
+            floor: form.floor
+              ? Number(form.floor)
+              : null,
+
+            amenityIds:
+              selectedAmenities,
+
+            // IMPORTANT
+            images: images,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to create property.");
+        setError(
+          data.error ||
+            "Failed to create property."
+        );
         return;
       }
 
-      router.push("/admin/properties");
+      router.push(
+        "/admin/properties"
+      );
+
       router.refresh();
     } catch {
-      setError("Something went wrong.");
+      setError(
+        "Something went wrong."
+      );
     } finally {
       setSaving(false);
     }
   }
+
+  // ─────────────────────────────────────
+  // LOADING
+  // ─────────────────────────────────────
 
   if (loading) {
     return (
@@ -199,15 +1052,23 @@ export default function AddPropertyPage() {
     );
   }
 
+  // ─────────────────────────────────────
+  // PAGE
+  // ─────────────────────────────────────
+
   return (
     <main className="min-h-screen bg-gray-100">
+
       {/* HEADER */}
 
       <header className="bg-white border-b">
         <div className="max-w-5xl mx-auto px-6 py-5">
+
           <button
             type="button"
-            onClick={() => router.push("/admin")}
+            onClick={() =>
+              router.push("/admin")
+            }
             className="text-sm text-gray-500 hover:text-black"
           >
             ← Back to Dashboard
@@ -220,24 +1081,31 @@ export default function AddPropertyPage() {
           <p className="text-gray-500 mt-1">
             Create a new property listing
           </p>
+
         </div>
       </header>
 
       {/* FORM */}
 
       <section className="max-w-5xl mx-auto p-6">
+
         <form
           onSubmit={handleSubmit}
           className="space-y-6"
         >
-          {/* BASIC INFORMATION */}
+
+          {/* ─────────────────────────────
+              BASIC INFORMATION
+          ───────────────────────────── */}
 
           <div className="bg-white rounded-2xl p-6 shadow-sm">
+
             <h2 className="text-xl font-semibold">
               Basic Information
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+
               {/* PURPOSE */}
 
               <div>
@@ -303,6 +1171,7 @@ export default function AddPropertyPage() {
               {/* TITLE */}
 
               <div className="md:col-span-2">
+
                 <label className="label">
                   Property Title
                 </label>
@@ -320,11 +1189,13 @@ export default function AddPropertyPage() {
                   className="input"
                   required
                 />
+
               </div>
 
               {/* PRICE */}
 
               <div>
+
                 <label className="label">
                   Price (PKR)
                 </label>
@@ -343,21 +1214,28 @@ export default function AddPropertyPage() {
                   required
                   min="0"
                 />
+
               </div>
+
             </div>
           </div>
 
-          {/* LOCATION */}
+          {/* ─────────────────────────────
+              LOCATION
+          ───────────────────────────── */}
 
           <div className="bg-white rounded-2xl p-6 shadow-sm">
+
             <h2 className="text-xl font-semibold">
               Location
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+
               {/* CITY */}
 
               <div>
+
                 <label className="label">
                   City
                 </label>
@@ -365,6 +1243,7 @@ export default function AddPropertyPage() {
                 <select
                   value={form.cityId}
                   onChange={(e) => {
+
                     updateField(
                       "cityId",
                       e.target.value
@@ -374,10 +1253,12 @@ export default function AddPropertyPage() {
                       "areaId",
                       ""
                     );
+
                   }}
                   className="input"
                   required
                 >
+
                   <option value="">
                     Select City
                   </option>
@@ -390,12 +1271,15 @@ export default function AddPropertyPage() {
                       {city.name}
                     </option>
                   ))}
+
                 </select>
+
               </div>
 
               {/* AREA */}
 
               <div>
+
                 <label className="label">
                   Area
                 </label>
@@ -411,6 +1295,7 @@ export default function AddPropertyPage() {
                   className="input"
                   disabled={!form.cityId}
                 >
+
                   <option value="">
                     Select Area
                   </option>
@@ -423,22 +1308,30 @@ export default function AddPropertyPage() {
                       {area.name}
                     </option>
                   ))}
+
                 </select>
+
               </div>
+
             </div>
           </div>
 
-          {/* PROPERTY DETAILS */}
+          {/* ─────────────────────────────
+              PROPERTY DETAILS
+          ───────────────────────────── */}
 
           <div className="bg-white rounded-2xl p-6 shadow-sm">
+
             <h2 className="text-xl font-semibold">
               Property Details
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-6">
+
               {/* SIZE */}
 
               <div>
+
                 <label className="label">
                   Size
                 </label>
@@ -456,11 +1349,13 @@ export default function AddPropertyPage() {
                   className="input"
                   min="0"
                 />
+
               </div>
 
               {/* UNIT */}
 
               <div>
+
                 <label className="label">
                   Unit
                 </label>
@@ -475,6 +1370,7 @@ export default function AddPropertyPage() {
                   }
                   className="input"
                 >
+
                   <option value="MARLA">
                     Marla
                   </option>
@@ -494,12 +1390,15 @@ export default function AddPropertyPage() {
                   <option value="SQ_M">
                     Sq. M
                   </option>
+
                 </select>
+
               </div>
 
               {/* BEDROOMS */}
 
               <div>
+
                 <label className="label">
                   Bedrooms
                 </label>
@@ -516,11 +1415,13 @@ export default function AddPropertyPage() {
                   className="input"
                   min="0"
                 />
+
               </div>
 
               {/* BATHROOMS */}
 
               <div>
+
                 <label className="label">
                   Bathrooms
                 </label>
@@ -537,11 +1438,13 @@ export default function AddPropertyPage() {
                   className="input"
                   min="0"
                 />
+
               </div>
 
               {/* FLOOR */}
 
               <div>
+
                 <label className="label">
                   Floor
                 </label>
@@ -557,13 +1460,18 @@ export default function AddPropertyPage() {
                   }
                   className="input"
                 />
+
               </div>
+
             </div>
           </div>
 
-          {/* DESCRIPTION */}
+          {/* ─────────────────────────────
+              DESCRIPTION
+          ───────────────────────────── */}
 
           <div className="bg-white rounded-2xl p-6 shadow-sm">
+
             <h2 className="text-xl font-semibold">
               Description
             </h2>
@@ -580,51 +1488,184 @@ export default function AddPropertyPage() {
               className="input mt-5 min-h-40 resize-y"
               required
             />
+
           </div>
 
-          {/* AMENITIES */}
+          {/* ─────────────────────────────
+              PROPERTY IMAGES
+          ───────────────────────────── */}
 
           <div className="bg-white rounded-2xl p-6 shadow-sm">
+
+            <h2 className="text-xl font-semibold">
+              Property Images
+            </h2>
+
+            <p className="text-sm text-gray-500 mt-1">
+              Upload multiple property images.
+              The first image will be the primary
+              image.
+            </p>
+
+            {/* UPLOAD */}
+
+            <div className="mt-5">
+
+              <label
+                htmlFor="property-images"
+                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-2xl p-8 cursor-pointer hover:bg-gray-50"
+              >
+
+                <span className="text-4xl">
+                  📷
+                </span>
+
+                <span className="font-medium mt-3">
+                  {uploadingImages
+                    ? "Uploading..."
+                    : "Click to upload images"}
+                </span>
+
+                <span className="text-sm text-gray-500 mt-1">
+                  JPG, PNG or WEBP — max 10MB
+                  each
+                </span>
+
+              </label>
+
+              <input
+                id="property-images"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                disabled={uploadingImages}
+                onChange={(e) =>
+                  uploadImages(
+                    e.target.files
+                  )
+                }
+                className="hidden"
+              />
+
+            </div>
+
+            {/* PREVIEW */}
+
+            {images.length > 0 && (
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+
+                {images.map(
+                  (image, index) => (
+
+                    <div
+                      key={image}
+                      className="relative"
+                    >
+
+                      <img
+                        src={image}
+                        alt={`Property image ${
+                          index + 1
+                        }`}
+                        className="w-full h-36 object-cover rounded-xl border"
+                      />
+
+                      {/* PRIMARY */}
+
+                      {index === 0 && (
+                        <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-1 rounded-lg">
+                          Primary
+                        </span>
+                      )}
+
+                      {/* REMOVE */}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeImage(
+                            index
+                          )
+                        }
+                        className="absolute top-2 right-2 bg-white text-red-600 w-8 h-8 rounded-full shadow hover:bg-red-50"
+                      >
+                        ×
+                      </button>
+
+                    </div>
+
+                  )
+                )}
+
+              </div>
+
+            )}
+
+          </div>
+
+          {/* ─────────────────────────────
+              AMENITIES
+          ───────────────────────────── */}
+
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+
             <h2 className="text-xl font-semibold">
               Amenities
             </h2>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-5">
-              {amenities.map((amenity) => (
-                <label
-                  key={amenity.id}
-                  className="flex items-center gap-3 border rounded-xl p-3 cursor-pointer hover:bg-gray-50"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedAmenities.includes(
-                      amenity.id
-                    )}
-                    onChange={() =>
-                      toggleAmenity(
-                        amenity.id
-                      )
-                    }
-                    className="w-4 h-4"
-                  />
 
-                  <span className="text-sm">
-                    {amenity.name}
-                  </span>
-                </label>
-              ))}
+              {amenities.map(
+                (amenity) => (
+
+                  <label
+                    key={amenity.id}
+                    className="flex items-center gap-3 border rounded-xl p-3 cursor-pointer hover:bg-gray-50"
+                  >
+
+                    <input
+                      type="checkbox"
+                      checked={selectedAmenities.includes(
+                        amenity.id
+                      )}
+                      onChange={() =>
+                        toggleAmenity(
+                          amenity.id
+                        )
+                      }
+                      className="w-4 h-4"
+                    />
+
+                    <span className="text-sm">
+                      {amenity.name}
+                    </span>
+
+                  </label>
+
+                )
+              )}
+
             </div>
+
           </div>
 
-          {/* WEBSITE SETTINGS */}
+          {/* ─────────────────────────────
+              WEBSITE SETTINGS
+          ───────────────────────────── */}
 
           <div className="bg-white rounded-2xl p-6 shadow-sm">
+
             <h2 className="text-xl font-semibold">
               Website Settings
             </h2>
 
             <div className="flex flex-col gap-4 mt-5">
+
+              {/* FEATURED */}
+
               <label className="flex items-center gap-3">
+
                 <input
                   type="checkbox"
                   checked={form.featured}
@@ -640,9 +1681,13 @@ export default function AddPropertyPage() {
                 <span>
                   Featured Property
                 </span>
+
               </label>
 
+              {/* PUBLISHED */}
+
               <label className="flex items-center gap-3">
+
                 <input
                   type="checkbox"
                   checked={form.published}
@@ -658,25 +1703,33 @@ export default function AddPropertyPage() {
                 <span>
                   Publish on Website
                 </span>
+
               </label>
+
             </div>
+
           </div>
 
           {/* ERROR */}
 
           {error && (
+
             <div className="bg-red-50 text-red-600 rounded-xl p-4">
               {error}
             </div>
+
           )}
 
-          {/* SAVE */}
+          {/* BUTTONS */}
 
           <div className="flex justify-end gap-3 pb-10">
+
             <button
               type="button"
               onClick={() =>
-                router.push("/admin")
+                router.push(
+                  "/admin"
+                )
               }
               className="border bg-white px-6 py-3 rounded-xl"
             >
@@ -685,18 +1738,28 @@ export default function AddPropertyPage() {
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={
+                saving ||
+                uploadingImages
+              }
               className="bg-black text-white px-8 py-3 rounded-xl font-semibold disabled:opacity-50"
             >
+
               {saving
                 ? "Saving..."
+                : uploadingImages
+                ? "Uploading Images..."
                 : "Publish Property"}
+
             </button>
+
           </div>
+
         </form>
+
       </section>
 
-      {/* SIMPLE TAILWIND CLASSES */}
+      {/* STYLES */}
 
       <style jsx global>{`
         .label {
@@ -720,6 +1783,7 @@ export default function AddPropertyPage() {
           box-shadow: 0 0 0 1px #000;
         }
       `}</style>
+
     </main>
   );
 }
